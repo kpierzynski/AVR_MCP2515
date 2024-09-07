@@ -2,7 +2,10 @@
 #define __MCP2515_H_
 
 #include <avr/io.h>
+#include <avr/interrupt.h>
 #include "spi.h"
+
+#define USE_IRQ
 
 typedef enum MCP2515_result
 {
@@ -80,6 +83,8 @@ typedef struct
 #define MCP2515_INT_DDR DDRD
 #define MCP2515_INT_PORT PORTD
 #define MCP2515_INT_PIN PD2
+#define MCP2515_INT INT0
+#define MCP2515_INT_vect INT0_vect
 
 #define MCP2515_RESET_DDR DDRD
 #define MCP2515_RESET_PORT PORTD

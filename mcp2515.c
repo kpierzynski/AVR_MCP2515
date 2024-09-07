@@ -1,5 +1,7 @@
 #include "mcp2515.h"
 
+static uint8_t irq_request = 0;
+
 static void (*mcp2515_rx_event_callback)(uint16_t id, uint8_t *buf, uint8_t len);
 
 void register_mcp2515_rx_event_callback(void (*callback)(uint16_t id, uint8_t *buf, uint8_t len))
@@ -59,6 +61,13 @@ MCP2515_result_t mcp2515_init()
 
     if (mcp2515_enter_config() != MCP2515_RESULT_SUCCESS)
         return MCP2515_RESULT_ERROR;
+
+#ifdef USE_IRQ
+    MCP2515_INT_DDR &= ~(1 << MCP2515_INT_PIN);
+
+    EICRA |= (1 << ISC01);
+    EIMSK |= (1 << MCP2515_INT);
+#endif
 
     // for 8MHz crystal and 500E3 baud rate:
     // (long)8E6,  (long)500E3, { 0x00, 0x90, 0x02 }
@@ -156,6 +165,11 @@ MCP2515_result_t mcp2515_put(uint16_t id, int8_t dlc, int8_t rtr, uint8_t *data,
 
 MCP2515_result_t mcp2515_get(uint8_t *rx_data)
 {
+#ifdef USE_IRQ
+    if (!irq_request)
+        return MCP2515_RESULT_ERROR;
+#endif
+
     uint8_t status = mcp2515_read_reg(REG_CANINTF);
 
     if (!(status & FLAG_RXnIF(0)))
@@ -183,5 +197,14 @@ MCP2515_result_t mcp2515_get(uint8_t *rx_data)
     if (mcp2515_rx_event_callback)
         mcp2515_rx_event_callback(id, rx_data, rx_len);
 
+#ifdef USE_IRQ
+    irq_request = 0;
+#endif
+
     return MCP2515_RESULT_SUCCESS;
+}
+
+ISR(MCP2515_INT_vect)
+{
+    irq_request = 1;
 }
