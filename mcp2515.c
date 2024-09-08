@@ -57,6 +57,9 @@ static MCP2515_result_t mcp2515_enter_config()
 
 MCP2515_result_t mcp2515_init()
 {
+    MCP2515_CS_DDR |= (1 << MCP2515_CS_PIN);
+    MCP2515_RESET_DDR |= (1 << MCP2515_RESET_PIN);
+
     mcp2515_soft_reset();
 
     if (mcp2515_enter_config() != MCP2515_RESULT_SUCCESS)
