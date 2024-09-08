@@ -64,6 +64,7 @@ MCP2515_result_t mcp2515_init()
 
 #ifdef USE_IRQ
     MCP2515_INT_DDR &= ~(1 << MCP2515_INT_PIN);
+    MCP2515_INT_PORT |= (1 << MCP2515_INT_PIN);
 
     EICRA |= (1 << ISC01);
     EIMSK |= (1 << MCP2515_INT);
